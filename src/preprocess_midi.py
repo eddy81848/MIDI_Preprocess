@@ -48,14 +48,16 @@ def preprocess_and_log_midi(input_dir, output_dir, log_file):
                     else:
                         print(f"  - 트랙 {i} 분리: {len(program_changes)}개 악기 발견")
                         messages_by_program = {}
-                        current_program = None
+                        active_program = None
                         for msg in track:
                             if msg.type == "program_change":
-                                current_program = msg.program
-                                if current_program not in messages_by_program:
-                                    messages_by_program[current_program] = []
-                            if current_program is not None:
-                                messages_by_program[current_program].append(msg)
+                                active_program = msg.program
+                                if active_program not in messages_by_program:
+                                    messages_by_program[active_program] = []
+                            # 'active_program'이 설정된 후에만 메시지를 추가
+                            # 따라서 메시지는 항상 현재 활성화된 악기에만 할당됨
+                            if active_program is not None:
+                                messages_by_program[active_program].append(msg)
 
                         for program_num, messages in messages_by_program.items():
                             new_track = mido.MidiTrack()
@@ -69,7 +71,12 @@ def preprocess_and_log_midi(input_dir, output_dir, log_file):
                             mid_processed.tracks.append(new_track)
 
                 # 3. 최종 트랙 개수 확인
-                final_track_count = len(mid_processed.tracks)
+                effective_tracks = [
+                    t
+                    for t in mid_processed.tracks
+                    if any(msg.type == "program_change" for msg in t)
+                ]
+                final_track_count = len(effective_tracks)
 
                 # 4. 트랙 수가 1개 이하면 스킵
                 if final_track_count <= 1:
