@@ -14,6 +14,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 /src/midi/*
+/src/midi_input/*
+/src/midi_output/*
+/src/midi_final/*
 
 # C extensions
 *.so
