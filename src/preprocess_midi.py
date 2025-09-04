@@ -112,9 +112,13 @@ def preprocess_and_log_midi(input_dir, output_dir, log_file):
                         ch = getattr(msg, "channel", None)
                         if ch is None:
                             continue
-
-                        if msg.type == "program_change":
-                            active_program[ch] = msg.program
+                        if ch == 9:  # 드럼 채널
+                            per_key_abs_msgs[(DRUMS_PROGRAM_ID, 9)].append(msg.copy())
+                        else:
+                            if msg.type == "program_change":
+                                active_program[ch] = msg.program
+                            program_id = active_program[ch]
+                            per_key_abs_msgs[(program_id, ch)].append(msg.copy())
                             # program_change 자체도 해당 키로 라우팅 (선택사항)
                         # 드럼 채널은 항상 DRUMS_PROGRAM_ID로 묶기
                         program_id = DRUMS_PROGRAM_ID if ch == 9 else active_program[ch]
